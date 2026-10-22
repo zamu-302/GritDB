@@ -1,0 +1,11 @@
+BasedOnStyle: LLVM
+Language: Cpp Standard: c++20
+IndentWidth: 4 TabWidth: 4 UseTab: Never
+ColumnLimit: 100
+BreakBeforeBraces: Attach AllowShortFunctionsOnASingleLine: Empty AllowShortIfStatementsOnASingleLine: Never AllowShortLoopsOnASingleLine: false
+PointerAlignment: Left ReferenceAlignment: Left DerivePointerAlignment: false
+NamespaceIndentation: None AccessModifierOffset: -4
+SortIncludes: CaseSensitive IncludeBlocks: Regroup IncludeCategories:
+Regex: '^<.*' Priority: 1
+Regex: '^".*' Priority: 2
+IndentCaseLabels: false SpaceAfterCStyleCast: false
