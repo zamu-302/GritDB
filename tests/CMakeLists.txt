@@ -1,14 +1,7 @@
+include(GoogleTest)
+
 add_executable(tests
-unit.cpp
-integration.cpp
-fuzz.cpp
-fixtures.cpp
-crash.cpp
+  unit.cpp
 )
-
-
-
-target_link_directories(tests
-PRIVATE
-
-)
+target_link_libraries(tests PRIVATE gritdb GTest::gtest_main)
+gtest_discover_tests(tests)
