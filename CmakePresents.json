@@ -1,6 +1,6 @@
 {
   "version": 6,
-  "configurePresents": [
+  "configurePresets": [
     {
       "name": "base",
       "hidden": true,
