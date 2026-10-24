@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        compiler: [g++,clang++]
         preset: [debug-asan, release]
     steps:
       - uses: actions/checkout@v4

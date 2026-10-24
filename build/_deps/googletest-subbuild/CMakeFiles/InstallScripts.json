@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/sam/math/C++/Projects/GritDB/build/_deps/googletest-subbuild/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
