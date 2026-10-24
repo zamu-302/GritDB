@@ -21,14 +21,14 @@ inline uint32_t DecodeFixed32(const char *dst) {
   auto *p = reinterpret_cast<const uint8_t *>(dst);
   uint32_t val{};
   for (int i = 0; i < 4; i++)
-    val |= static_cast<uint32_t>(p[i] << (8 * i));
+    val |= static_cast<uint32_t>(p[i]) << (8 * i);
   return val;
 }
 inline uint64_t DecodeFixed64(const char *dst) {
   auto *p = reinterpret_cast<const uint8_t *>(dst);
   uint64_t val{};
   for (int i = 0; i < 8; i++)
-    val |= static_cast<uint64_t>(p[i] << (8 * i));
+    val |= static_cast<uint64_t>(p[i]) << (8 * i);
   return val;
 }
 
@@ -79,6 +79,7 @@ inline bool GetVarint64(std::string_view *input, uint64_t *out) {
     result |= (byte & 0x7F) << shift;
     if ((byte & 0x80) == 0) {
       *out = result;
+      *input = in;
       return true;
     }
   }
