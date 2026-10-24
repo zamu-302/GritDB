@@ -20,10 +20,14 @@ constexpr std::array<uint32_t, 256> kTable = makeTable();
 } // namespace
 uint32_t Extend(uint32_t init_crc, const char *data, size_t n) {
   const auto *p = reinterpret_cast<const uint8_t *>(data);
-  uint32_t crc = ~init_crc;
+  uint32_t crc =
+      ~init_crc; // a zero bytes does nothing if the accummulator start with 0.
   for (size_t i = 0; i < n; i++) {
-    crc = kTable[(crc ^ p[i]) & 0xFF] ^ (crc >> 8);
+    crc = kTable[(crc ^ p[i]) & 0xFF] ^
+          (crc >>
+           8); // we are adding the data then masking to range then shifting and
+               // adding to remove the old and add the new(added data).
   }
-  return ~crc;
+  return ~crc; // post conditioning
 }
 } // namespace gritdb::crc32c

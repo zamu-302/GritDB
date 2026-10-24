@@ -11,7 +11,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 add_library(gritdb
-src/status.cc)
+src/status.cc
+src/crc32c.cc)
 target_link_directories(gritdb PUBLIC include)
 target_compile_options(gritdb PRIVATE -Wall -Wextra -Wpedantic)
 
