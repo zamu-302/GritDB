@@ -2,12 +2,22 @@
 #include "status.h"
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <memory>
+#include <mutex>
+#include <set>
+#include <shared_mutex>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace gritdb {
+struct FileState {
+  std::string data;
+  std::mutex mu;
+  uint64_t synced_size = 0;
+};
+
 class RandomAccessFile {
 public:
   virtual Status Read(std::string_view *result, char *buff, size_t n,
@@ -57,6 +67,11 @@ public:
   Status FileSize(const std::string &path, uint64_t *size) const override;
   bool FileExists(const std::string &path) const override;
   Status SyncDir(const std::string &path) override;
+
+private:
+  std::map<std::string, std::shared_ptr<FileState>> state;
+  mutable std::mutex mu_;
+  std::set<std::string> dirs_;
 };
 
 } // namespace gritdb
