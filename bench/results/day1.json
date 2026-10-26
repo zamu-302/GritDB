@@ -1,0 +1,89 @@
+{
+  "context": {
+    "date": "2026-10-25T13:09:31+03:00",
+    "host_name": "sam-HP-Laptop-14s-dq2xxx",
+    "executable": "./build/release/bench/gritdb_bench",
+    "num_cpus": 8,
+    "mhz_per_cpu": 3700,
+    "cpu_scaling_enabled": true,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 49152,
+        "num_sharing": 2
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 1310720,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 8388608,
+        "num_sharing": 8
+      }
+    ],
+    "load_avg": [
+      0.0107422,
+      0.144531,
+      0.337891
+    ],
+    "library_build_type": "release"
+  },
+  "benchmarks": [
+    {
+      "name": "BM_PutVarint64",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_PutVarint64",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 255631,
+      "real_time": 2.7174675763040827e+03,
+      "cpu_time": 2.7173772664504695e+03,
+      "time_unit": "ns",
+      "items_per_second": 3.7683394670390522e+08
+    },
+    {
+      "name": "BM_GetVarint64",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "BM_GetVarint64",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 847398,
+      "real_time": 8.2518846280062326e+02,
+      "cpu_time": 8.2512039443095216e+02,
+      "time_unit": "ns",
+      "items_per_second": 1.2410310142754452e+09
+    },
+    {
+      "name": "BM_Crc32c_4KB",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "BM_Crc32c_4KB",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 65399,
+      "real_time": 1.0671818911604061e+04,
+      "cpu_time": 1.0671385541063320e+04,
+      "time_unit": "ns",
+      "bytes_per_second": 3.8383019564223015e+08
+    }
+  ]
+}

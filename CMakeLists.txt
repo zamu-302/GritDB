@@ -10,23 +10,29 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 
+
 add_library(gritdb
 src/status.cc
 src/crc32c.cc)
-target_link_directories(gritdb PUBLIC include)
+target_include_directories(gritdb PUBLIC include)
 target_compile_options(gritdb PRIVATE -Wall -Wextra -Wpedantic)
 
 
 include(FetchContent)
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
+set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+
 FetchContent_Declare(googletest
   URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 
+FetchContent_Declare(benchmark
+URL https://github.com/google/benchmark/archive/refs/tags/v1.8.3.zip
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
 
-
-FetchContent_MakeAvailable(googletest)
-
+FetchContent_MakeAvailable(benchmark googletest)
 
 enable_testing()
+add_subdirectory(bench)
 add_subdirectory(tests)
 
