@@ -7,7 +7,10 @@
 #include <mutex>
 #include <string>
 #include <string_view>
+
 namespace fs = std::filesystem;
+namespace gritdb {
+
 namespace {
 std::string Normalize(std::string path) {
   while (path.size() > 1 && path.back() == '/') {
@@ -21,8 +24,6 @@ std::string ParentOf(const std::string &path) {
 }
 
 } // namespace
-
-namespace gritdb {
 
 class MemWritableFile : public WritableFile {
 public:
