@@ -12,6 +12,10 @@ struct FileState {
 
 class MemFileSystem : public FileSystem {
 public:
+  MemFileSystem() {
+    dirs_.insert("");
+    dirs_.insert("/");
+  }
   Status NewWritableFile(const std::string &path,
                          std::unique_ptr<WritableFile> *result) override;
   Status RenameFile(const std::string &from, const std::string &to) override;
