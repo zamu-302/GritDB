@@ -91,8 +91,8 @@ Status MemFileSystem::NewWritableFile(const std::string &path,
   if (!dirs_.contains(ParentOf(normalized_path))) {
     return Status::NotFound("parent directory not found.");
   }
-  if (state.contains(normalized_path)) {
-    return Status::InvalidArgument("path already exists: " + normalized_path);
+  if (dirs_.contains(normalized_path)) {
+    return Status::InvalidArgument("path is a directory.");
   }
   auto file_state = std::make_shared<FileState>();
   state[normalized_path] = file_state;
@@ -105,22 +105,23 @@ Status MemFileSystem::RenameFile(const std::string &from,
 
   const std::string normalized_from = Normalize(from);
   const std::string normalized_to = Normalize(to);
-  if (normalized_from == normalized_to) {
-    return Status::OK();
-  }
   std::lock_guard lock(mu_);
-  if (!state.contains(normalized_from)) {
-    return Status::NotFound("path doesn't exists.");
+  auto it = state.find(normalized_from);
+  if (it == state.end()) {
+    return Status::NotFound("rename source not found: " + normalized_from);
   }
   if (!dirs_.contains(ParentOf(normalized_to))) {
     return Status::NotFound("destination directory not found.");
   }
-  if (state.contains(normalized_to)) {
+  if (dirs_.contains(normalized_to)) {
     return Status::InvalidArgument("destination is a directory: " +
                                    normalized_to);
   }
-  state[normalized_to] = std::move(state[normalized_from]);
-  state.erase(normalized_from);
+  if (normalized_to == normalized_from) {
+    return Status::OK();
+  }
+  state[normalized_to] = std::move(it->second);
+  state.erase(it);
   return Status::OK();
 }
 Status
@@ -131,6 +132,7 @@ MemFileSystem::NewRandomAccessFile(const std::string &path,
   if (!dirs_.contains(ParentOf(normalized_path))) {
     return Status::NotFound("parent directory not found.");
   }
+
   auto it = state.find(normalized_path);
   if (it == state.end()) {
     return Status::NotFound("file not found: " + path);
@@ -177,7 +179,7 @@ Status MemFileSystem::CreateDir(const std::string &path) {
     return Status::NotFound("parent directory not found.");
   }
   if (state.contains(normalized_path)) {
-    return Status::NotFound("path already exists.");
+    return Status::InvalidArgument("path already exists.");
   }
   dirs_.insert(normalized_path);
   return Status::OK();
@@ -199,6 +201,7 @@ Status MemFileSystem::FileSize(const std::string &path, uint64_t *size) const {
 }
 bool MemFileSystem::FileExists(const std::string &path) const {
   const std::string normalized_path = Normalize(path);
+  std::lock_guard lock(mu_);
   if (!dirs_.contains(ParentOf(normalized_path))) {
     return false;
   }
@@ -207,4 +210,13 @@ bool MemFileSystem::FileExists(const std::string &path) const {
   }
   return true;
 }
+Status MemFileSystem::SyncDir(const std::string &path) {
+  const std::string normalized_path = Normalize(path);
+  std::lock_guard lock(mu_);
+  if (!dirs_.contains(normalized_path)) {
+    return Status::NotFound("directory not found: " + normalized_path);
+  }
+  return Status::OK();
+}
+
 } // namespace gritdb
