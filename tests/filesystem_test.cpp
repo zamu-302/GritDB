@@ -1,8 +1,21 @@
-#include "../include/mem_filesystem.h"
-#include "filesystem.h"
-#include "status.h"
 #include <gtest/gtest.h>
+
+#include <algorithm>
+#include <cstdint>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <memory>
+#include <string>
+#include <string_view>
+#include <type_traits>
+#include <vector>
+
+#include "filesystem.h"
+#include "mem_filesystem.h"
+#include "posix_filesystem.h"
+#include "status.h"
 
 using namespace gritdb;
 
@@ -12,8 +25,69 @@ using namespace gritdb;
     ASSERT_TRUE(_s.ok()) << _s.ToString();                                     \
   } while (0)
 
-// helpers
+// ---------------------------------------------------------------------------
+// Backends: how to make each filesystem, where it works, how to clean up
+// ---------------------------------------------------------------------------
 namespace {
+
+struct MemBackend {
+  static std::unique_ptr<FileSystem> Make() {
+    return std::make_unique<MemFileSystem>();
+  }
+  static std::string MakeBase() { return "/test"; } // fake path, lives in RAM
+  static void Cleanup(const std::string &) {}
+};
+
+struct PosixBackend {
+  static std::unique_ptr<FileSystem> Make() {
+    return std::make_unique<PosixFileSystem>();
+  }
+  static std::string MakeBase() {
+    // mkdtemp replaces the XXXXXX in the buffer and creates the directory.
+    std::string tmpl =
+        (std::filesystem::temp_directory_path() / "gritdb_test_XXXXXX")
+            .string();
+    char *made = ::mkdtemp(tmpl.data());
+    return made != nullptr ? std::string(made) : std::string();
+  }
+  static void Cleanup(const std::string &base) {
+    std::error_code ec; // never throw from TearDown
+    std::filesystem::remove_all(base, ec);
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Typed fixture: one test body runs once per backend
+// ---------------------------------------------------------------------------
+template <typename Backend> class FsTest : public ::testing::Test {
+protected:
+  void SetUp() override {
+    fs_ = Backend::Make();
+    base = Backend::MakeBase();
+    ASSERT_FALSE(base.empty());
+    ASSERT_OK(
+        fs_->CreateDir(base)); // already exists on Posix (mkdtemp made it)
+  }
+  void TearDown() override { Backend::Cleanup(base); }
+
+  std::string P(const std::string &name) const { return base + "/" + name; }
+
+  std::unique_ptr<FileSystem> fs_;
+  std::string base;
+};
+
+struct BackendNames {
+  template <typename T> static std::string GetName(int) {
+    if constexpr (std::is_same_v<T, MemBackend>)
+      return "Mem";
+    else
+      return "Posix";
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Helpers (take FileSystem*, so they work with any backend)
+// ---------------------------------------------------------------------------
 Status WriteFile(FileSystem *fs, const std::string &path,
                  std::string_view data) {
   std::unique_ptr<WritableFile> f;
@@ -55,41 +129,88 @@ std::string ReadAt(RandomAccessFile *f, uint64_t offset, size_t n) {
   return std::string(result);
 }
 
-class MemFsTest : public ::testing::Test {
-protected:
-  void SetUp() override { ASSERT_OK(fs.CreateDir(base)); }
-  std::string P(const std::string &name) const { return base + "/" + name; }
-
-  MemFileSystem fs;
-  const std::string base = "/test";
+// Removes a Posix temp directory even if an ASSERT_ returns early.
+struct ScopedPosixDir {
+  ScopedPosixDir() : path(PosixBackend::MakeBase()) {}
+  ~ScopedPosixDir() { PosixBackend::Cleanup(path); }
+  std::string path;
 };
+
 } // namespace
-TEST(MemFileSystem, CreateBase) {
+
+using Backends = ::testing::Types<MemBackend, PosixBackend>;
+TYPED_TEST_SUITE(FsTest, Backends, BackendNames);
+
+// A typed-test body can't see fixture members by plain name (they live in a
+// dependent base class), so this pulls them in through `this->`.
+#define FS_PRELUDE                                                             \
+  [[maybe_unused]] FileSystem &fs = *this->fs_;                                \
+  [[maybe_unused]] auto P = [this](const std::string &n) {                     \
+    return this->P(n);                                                         \
+  };                                                                           \
+  [[maybe_unused]] const std::string &base = this->base;
+
+// ---------------------------------------------------------------------------
+// Mem-only tests: these rely on relative paths and the in-memory root
+// ---------------------------------------------------------------------------
+TEST(MemOnly, CreateBase) {
   MemFileSystem file;
   std::unique_ptr<WritableFile> val;
-  Status currStatus = file.NewWritableFile("a.log", &val);
-  Status okay = Status::OK();
-  EXPECT_EQ(okay.ToString(), currStatus.ToString());
-  Status currStatus2 = val->Append("hello world");
-  EXPECT_EQ(okay.ToString(), currStatus2.ToString());
+  ASSERT_OK(file.NewWritableFile("a.log", &val));
+  ASSERT_OK(val->Append("hello world"));
   EXPECT_TRUE(file.FileExists("a.log"));
 }
 
-TEST(MemFileSystem, CreateDir) {
+TEST(MemOnly, CreateNestedDirsThenFile) {
   MemFileSystem file;
-  Status okay = Status::OK();
-  EXPECT_EQ(file.CreateDir("math").ToString(), okay.ToString());
-  EXPECT_EQ(file.CreateDir("math/C++").ToString(), okay.ToString());
-  EXPECT_EQ(file.CreateDir("math/C++/Projects").ToString(), okay.ToString());
-  EXPECT_EQ(file.CreateDir("math/C++/Projects/GritDB").ToString(),
-            okay.ToString());
+  ASSERT_OK(file.CreateDir("math"));
+  ASSERT_OK(file.CreateDir("math/C++"));
+  ASSERT_OK(file.CreateDir("math/C++/Projects"));
+  ASSERT_OK(file.CreateDir("math/C++/Projects/GritDB"));
   std::unique_ptr<WritableFile> val;
-  EXPECT_EQ(okay.ToString(),
-            file.NewWritableFile("math/C++/Projects/GritDB/grit.db", &val)
-                .ToString());
+  ASSERT_OK(file.NewWritableFile("math/C++/Projects/GritDB/grit.db", &val));
   EXPECT_TRUE(file.FileExists("math/C++/Projects/GritDB/grit.db"));
 }
-TEST_F(MemFsTest, AppendInPiecesReadsBackExactly) {
+
+// ---------------------------------------------------------------------------
+// Posix-only tests: need the real disk
+// ---------------------------------------------------------------------------
+// If ~PosixWritableFile didn't close its descriptor, this would hit the
+// per-process limit (usually 1024) and open() would fail with EMFILE.
+TEST(PosixOnly, HandlesDoNotLeakDescriptors) {
+  PosixFileSystem fs;
+  ScopedPosixDir dir;
+  ASSERT_FALSE(dir.path.empty());
+  for (int i = 0; i < 5000; i++) {
+    std::unique_ptr<WritableFile> w;
+    Status s = fs.NewWritableFile(dir.path + "/f", &w);
+    ASSERT_TRUE(s.ok()) << "iteration " << i << ": " << s.ToString();
+  } // each handle is destroyed here WITHOUT Close(): the destructor is under
+    // test
+}
+
+// Reads the file back with plain std::ifstream, bypassing our own read code,
+// so a bug in PosixRandomAccessFile can't hide a bug in the write path.
+TEST(PosixOnly, SyncedDataIsReallyInTheFile) {
+  PosixFileSystem fs;
+  ScopedPosixDir dir;
+  ASSERT_FALSE(dir.path.empty());
+  ASSERT_OK(WriteFile(&fs, dir.path + "/data", "persisted"));
+
+  std::ifstream in(dir.path + "/data", std::ios::binary);
+  std::string got((std::istreambuf_iterator<char>(in)),
+                  std::istreambuf_iterator<char>());
+  EXPECT_EQ(got, "persisted");
+}
+
+// ---------------------------------------------------------------------------
+// Shared tests: every backend must pass every one of these
+// ---------------------------------------------------------------------------
+
+// ---- content ----
+
+TYPED_TEST(FsTest, AppendInPiecesReadsBackExactly) {
+  FS_PRELUDE;
   std::unique_ptr<WritableFile> w;
   ASSERT_OK(fs.NewWritableFile(P("a.log"), &w));
   ASSERT_OK(w->Append("hello "));
@@ -108,7 +229,8 @@ TEST_F(MemFsTest, AppendInPiecesReadsBackExactly) {
   EXPECT_TRUE(fs.FileExists(P("a.log")));
 }
 
-TEST_F(MemFsTest, ReadAtOffsetsAndEdges) {
+TYPED_TEST(FsTest, ReadAtOffsetsAndEdges) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("digits"), "0123456789"));
   std::unique_ptr<RandomAccessFile> r;
   ASSERT_OK(fs.NewRandomAccessFile(P("digits"), &r));
@@ -122,7 +244,8 @@ TEST_F(MemFsTest, ReadAtOffsetsAndEdges) {
   EXPECT_EQ(ReadAt(r.get(), 2, 0), "");   // zero-length read
 }
 
-TEST_F(MemFsTest, EmptyFile) {
+TYPED_TEST(FsTest, EmptyFile) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("empty"), ""));
   uint64_t size = 99;
   ASSERT_OK(fs.FileSize(P("empty"), &size));
@@ -132,7 +255,8 @@ TEST_F(MemFsTest, EmptyFile) {
   EXPECT_EQ(got, "");
 }
 
-TEST_F(MemFsTest, LargeFileRoundTrip) {
+TYPED_TEST(FsTest, LargeFileRoundTrip) {
+  FS_PRELUDE;
   const size_t kSize = 3u << 20; // 3 MB
   std::string expected;
   expected.reserve(kSize);
@@ -159,7 +283,8 @@ TEST_F(MemFsTest, LargeFileRoundTrip) {
 
 // ---- missing things ----
 
-TEST_F(MemFsTest, OpenMissingFileIsNotFound) {
+TYPED_TEST(FsTest, OpenMissingFileIsNotFound) {
+  FS_PRELUDE;
   std::unique_ptr<RandomAccessFile> r;
   Status s = fs.NewRandomAccessFile(P("nope"), &r);
   EXPECT_TRUE(s.IsNotFound()) << s.ToString();
@@ -168,7 +293,8 @@ TEST_F(MemFsTest, OpenMissingFileIsNotFound) {
   EXPECT_FALSE(fs.FileExists(P("nope")));
 }
 
-TEST_F(MemFsTest, CreateFileWithMissingParentIsNotFound) {
+TYPED_TEST(FsTest, CreateFileWithMissingParentIsNotFound) {
+  FS_PRELUDE;
   std::unique_ptr<WritableFile> w;
   Status s = fs.NewWritableFile(P("no/such/dir/a.log"), &w);
   EXPECT_TRUE(s.IsNotFound()) << s.ToString();
@@ -176,22 +302,22 @@ TEST_F(MemFsTest, CreateFileWithMissingParentIsNotFound) {
 
 // ---- create / overwrite ----
 
-TEST_F(MemFsTest,
-       CreatingSamePathTwiceGivesEmptyFileButOldReaderKeepsOldBytes) {
+// Only what BOTH backends can promise: creating an existing path leaves an
+// empty file. (Posix truncates in place, Mem swaps in a fresh file, so what an
+// already-open reader sees differs, and the suite does not pin that down.)
+TYPED_TEST(FsTest, CreatingSamePathTwiceGivesEmptyFile) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("a"), "abc"));
-  std::unique_ptr<RandomAccessFile> old_reader;
-  ASSERT_OK(fs.NewRandomAccessFile(P("a"), &old_reader));
-
   std::unique_ptr<WritableFile> w;
-  ASSERT_OK(fs.NewWritableFile(P("a"), &w)); // must succeed and replace
+  ASSERT_OK(fs.NewWritableFile(P("a"), &w)); // must succeed and leave it empty
 
   uint64_t size = 99;
   ASSERT_OK(fs.FileSize(P("a"), &size));
   EXPECT_EQ(size, 0u);
-  EXPECT_EQ(ReadAt(old_reader.get(), 0, 3), "abc");
 }
 
-TEST_F(MemFsTest, CreateFileOnDirectoryNameFails) {
+TYPED_TEST(FsTest, CreateFileOnDirectoryNameFails) {
+  FS_PRELUDE;
   ASSERT_OK(fs.CreateDir(P("d")));
   std::unique_ptr<WritableFile> w;
   EXPECT_FALSE(fs.NewWritableFile(P("d"), &w).ok());
@@ -199,7 +325,8 @@ TEST_F(MemFsTest, CreateFileOnDirectoryNameFails) {
 
 // ---- rename ----
 
-TEST_F(MemFsTest, RenameOntoExistingFileReplacesIt) {
+TYPED_TEST(FsTest, RenameOntoExistingFileReplacesIt) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("src"), "new"));
   ASSERT_OK(WriteFile(&fs, P("dst"), "old-and-longer"));
   ASSERT_OK(fs.RenameFile(P("src"), P("dst")));
@@ -210,7 +337,8 @@ TEST_F(MemFsTest, RenameOntoExistingFileReplacesIt) {
   EXPECT_EQ(got, "new");
 }
 
-TEST_F(MemFsTest, RenameToNewNameMovesContent) {
+TYPED_TEST(FsTest, RenameToNewNameMovesContent) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("a"), "payload"));
   ASSERT_OK(fs.RenameFile(P("a"), P("b")));
   EXPECT_FALSE(fs.FileExists(P("a")));
@@ -219,14 +347,16 @@ TEST_F(MemFsTest, RenameToNewNameMovesContent) {
   EXPECT_EQ(got, "payload");
 }
 
-TEST_F(MemFsTest, RenameMissingSourceIsNotFound) {
+TYPED_TEST(FsTest, RenameMissingSourceIsNotFound) {
+  FS_PRELUDE;
   Status s = fs.RenameFile(P("ghost"), P("other"));
   EXPECT_TRUE(s.IsNotFound()) << s.ToString();
-  // even when source == destination
-  EXPECT_TRUE(fs.RenameFile(P("ghost"), P("ghost")).IsNotFound());
+  EXPECT_TRUE(
+      fs.RenameFile(P("ghost"), P("ghost")).IsNotFound()); // even src == dst
 }
 
-TEST_F(MemFsTest, RenameOntoDirectoryFailsAndKeepsSource) {
+TYPED_TEST(FsTest, RenameOntoDirectoryFailsAndKeepsSource) {
+  FS_PRELUDE;
   ASSERT_OK(fs.CreateDir(P("d")));
   ASSERT_OK(WriteFile(&fs, P("f"), "x"));
   EXPECT_FALSE(fs.RenameFile(P("f"), P("d")).ok());
@@ -235,7 +365,8 @@ TEST_F(MemFsTest, RenameOntoDirectoryFailsAndKeepsSource) {
 
 // ---- delete ----
 
-TEST_F(MemFsTest, DeleteRemovesFile) {
+TYPED_TEST(FsTest, DeleteRemovesFile) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("a"), "x"));
   ASSERT_OK(fs.DeleteFile(P("a")));
   EXPECT_FALSE(fs.FileExists(P("a")));
@@ -244,7 +375,8 @@ TEST_F(MemFsTest, DeleteRemovesFile) {
   EXPECT_TRUE(fs.DeleteFile(P("a")).IsNotFound()); // second delete
 }
 
-TEST_F(MemFsTest, DeleteWhileReaderOpenReaderStillWorks) {
+TYPED_TEST(FsTest, DeleteWhileReaderOpenReaderStillWorks) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("a"), "hello"));
   std::unique_ptr<RandomAccessFile> r;
   ASSERT_OK(fs.NewRandomAccessFile(P("a"), &r));
@@ -255,23 +387,27 @@ TEST_F(MemFsTest, DeleteWhileReaderOpenReaderStillWorks) {
 
 // ---- directories ----
 
-TEST_F(MemFsTest, CreateDirNestedAndTwice) {
+TYPED_TEST(FsTest, CreateDirNestedAndTwice) {
+  FS_PRELUDE;
   ASSERT_OK(fs.CreateDir(P("x")));
   ASSERT_OK(fs.CreateDir(P("x/y")));
   ASSERT_OK(fs.CreateDir(P("x/y"))); // idempotent on purpose
 }
 
-TEST_F(MemFsTest, CreateDirWithMissingParentIsNotFound) {
+TYPED_TEST(FsTest, CreateDirWithMissingParentIsNotFound) {
+  FS_PRELUDE;
   Status s = fs.CreateDir(P("no/child"));
   EXPECT_TRUE(s.IsNotFound()) << s.ToString();
 }
 
-TEST_F(MemFsTest, CreateDirOverFileFails) {
+TYPED_TEST(FsTest, CreateDirOverFileFails) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("f"), "x"));
   EXPECT_FALSE(fs.CreateDir(P("f")).ok());
 }
 
-TEST_F(MemFsTest, DirlistReturnsImmediateChildrenSorted) {
+TYPED_TEST(FsTest, DirlistReturnsImmediateChildrenSorted) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("b"), "1"));
   ASSERT_OK(WriteFile(&fs, P("a"), "2"));
   ASSERT_OK(fs.CreateDir(P("d")));
@@ -285,21 +421,24 @@ TEST_F(MemFsTest, DirlistReturnsImmediateChildrenSorted) {
   EXPECT_EQ(names, (std::vector<std::string>{"inner"}));
 }
 
-TEST_F(MemFsTest, DirlistClearsOldContentsAndHandlesEmptyDir) {
+TYPED_TEST(FsTest, DirlistClearsOldContentsAndHandlesEmptyDir) {
+  FS_PRELUDE;
   ASSERT_OK(fs.CreateDir(P("empty")));
   std::vector<std::string> names = {"stale"};
   ASSERT_OK(fs.Dirlist(P("empty"), &names));
   EXPECT_TRUE(names.empty());
 }
 
-TEST_F(MemFsTest, DirlistMissingDirIsNotFoundAndLeavesOutputAlone) {
+TYPED_TEST(FsTest, DirlistMissingDirIsNotFoundAndLeavesOutputAlone) {
+  FS_PRELUDE;
   std::vector<std::string> names = {"sentinel"};
   Status s = fs.Dirlist(P("missing"), &names);
   EXPECT_TRUE(s.IsNotFound()) << s.ToString();
   EXPECT_EQ(names, (std::vector<std::string>{"sentinel"}));
 }
 
-TEST_F(MemFsTest, TrailingSlashMeansSamePath) {
+TYPED_TEST(FsTest, TrailingSlashMeansSamePath) {
+  FS_PRELUDE;
   ASSERT_OK(WriteFile(&fs, P("a"), "x"));
   std::vector<std::string> names;
   ASSERT_OK(fs.Dirlist(base + "/", &names));
@@ -308,7 +447,8 @@ TEST_F(MemFsTest, TrailingSlashMeansSamePath) {
 
 // ---- handles ----
 
-TEST_F(MemFsTest, OperationsAfterCloseFail) {
+TYPED_TEST(FsTest, OperationsAfterCloseFail) {
+  FS_PRELUDE;
   std::unique_ptr<WritableFile> w;
   ASSERT_OK(fs.NewWritableFile(P("a"), &w));
   ASSERT_OK(w->Close());
@@ -318,7 +458,8 @@ TEST_F(MemFsTest, OperationsAfterCloseFail) {
   EXPECT_TRUE(w->Close().ok()); // closing twice is harmless
 }
 
-TEST_F(MemFsTest, FlushSyncAndSyncDirSucceed) {
+TYPED_TEST(FsTest, FlushSyncAndSyncDirSucceed) {
+  FS_PRELUDE;
   std::unique_ptr<WritableFile> w;
   ASSERT_OK(fs.NewWritableFile(P("a"), &w));
   ASSERT_OK(w->Append("x"));
@@ -328,7 +469,8 @@ TEST_F(MemFsTest, FlushSyncAndSyncDirSucceed) {
   EXPECT_TRUE(fs.SyncDir(P("missing")).IsNotFound());
 }
 
-TEST_F(MemFsTest, TwoHandlesOnSameFileSeeEachOthersWrites) {
+TYPED_TEST(FsTest, TwoHandlesOnSameFileSeeEachOthersWrites) {
+  FS_PRELUDE;
   std::unique_ptr<WritableFile> w;
   ASSERT_OK(fs.NewWritableFile(P("a"), &w));
   std::unique_ptr<RandomAccessFile> r;

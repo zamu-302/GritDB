@@ -15,6 +15,7 @@ add_library(gritdb
 src/status.cc
 src/crc32c.cc
 src/filesystem.cc
+src/posix_filesystem.cc
 src/mem_filesystem.cc)
 target_include_directories(gritdb PUBLIC include)
 target_compile_options(gritdb PRIVATE -Wall -Wextra -Wpedantic)
