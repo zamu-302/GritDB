@@ -4,6 +4,14 @@
 #include <string_view>
 namespace gritdb {
 // fixed
+
+inline void EncodeFixed16(char *dst, uint32_t val) {
+  auto *p = reinterpret_cast<uint8_t *>(dst);
+  for (int i = 0; i < 2; i++) {
+    p[i] = static_cast<uint8_t>(val >> (8 * i));
+  }
+}
+
 inline void EncodeFixed32(char *dst, uint32_t val) {
   auto *p = reinterpret_cast<uint8_t *>(dst);
   for (int i = 0; i < 4; ++i) {
@@ -15,6 +23,13 @@ inline void EncodeFixed64(char *dst, uint64_t val) {
   for (int i = 0; i < 8; ++i) {
     p[i] = static_cast<uint8_t>(val >> (8 * i));
   }
+}
+inline uint16_t DecodeFixed16(const char *dst) {
+  auto *p = reinterpret_cast<const uint8_t *>(dst);
+  uint16_t val{};
+  for (int i = 0; i < 2; i++)
+    val |= static_cast<uint32_t>(p[i]) << (8 * i);
+  return val;
 }
 
 inline uint32_t DecodeFixed32(const char *dst) {
@@ -43,6 +58,19 @@ inline void PutFixed64(std::string *dst, uint64_t val) {
   dst->append(buf, 8);
 }
 
+inline bool GetFixed16(std::string_view *input, uint16_t *val) {
+  if (input->size() < 2)
+    return false;
+  *val = DecodeFixed16(input->data());
+  input->remove_prefix(2);
+  return true;
+}
+inline void PutFixed16(std::string *dst, uint16_t val) {
+  char buf[2];
+  EncodeFixed16(buf, val);
+  dst->append(buf, 2);
+}
+
 inline bool GetFixed32(std::string_view *input, uint32_t *val) {
   if (input->size() < 4)
     return false;
@@ -50,6 +78,7 @@ inline bool GetFixed32(std::string_view *input, uint32_t *val) {
   input->remove_prefix(4);
   return true;
 }
+
 inline bool GetFixed64(std::string_view *input, uint64_t *val) {
   if (input->size() < 8)
     return false;
