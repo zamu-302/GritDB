@@ -8,7 +8,6 @@
 #include <vector>
 
 namespace gritdb {
-
 class RandomAccessFile {
 public:
   virtual Status Read(std::string_view *result, char *buff, size_t n,
@@ -42,5 +41,7 @@ public:
 
   virtual ~FileSystem() = default;
 };
+Status ReadFileToString(FileSystem *fs, const std::string &path,
+                        std::string *out);
 
 } // namespace gritdb
