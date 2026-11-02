@@ -1,11 +1,12 @@
 #include "coding.h"
 #include "crc32c.h"
+#include "filesystem.h"
 #include "wal.h"
 #include <gtest/gtest.h>
 #include <mem_filesystem.h>
+#include <memory>
 
 using namespace gritdb;
-
 TEST(EncodeRecordTest, AbcFull) {
   std::string rec = EncodeRecord(RecordType::Full, "abc");
   ASSERT_EQ(rec.size(), 10u);
@@ -52,4 +53,50 @@ TEST(LogReaderTest, TornTailAtEveryCut) {
     EXPECT_FALSE(r.ReadRecord(&rec));
     EXPECT_TRUE(r.status().ok()) << "cut at " << cut;
   }
+}
+
+TEST(LogReaderTest, ReassemblesFragments) {
+  const std::string log = EncodeRecord(RecordType::First, "ab") +
+                          EncodeRecord(RecordType::Middle, "cd") +
+                          EncodeRecord(RecordType::Last, "ef");
+  LogReader r(log);
+  std::string rec;
+  ASSERT_TRUE(r.ReadRecord(&rec));
+  EXPECT_EQ(rec, "abcdef");
+  EXPECT_FALSE(r.ReadRecord(&rec));
+  EXPECT_TRUE(r.status().ok());
+}
+
+TEST(LogReaderTest, MiddleWithoutFirstIsCorruption) {
+  const std::string log = EncodeRecord(RecordType::Middle, "cd");
+  LogReader r(log);
+  std::string rec;
+  EXPECT_FALSE(r.ReadRecord(&rec));
+  EXPECT_TRUE(r.status().IsCorruption());
+}
+
+TEST(LogReaderTest, MissingLastIsTornTail) {
+  const std::string log = EncodeRecord(RecordType::Full, "ok") +
+                          EncodeRecord(RecordType::First, "ab");
+  LogReader r(log);
+  std::string rec;
+  ASSERT_TRUE(r.ReadRecord(&rec));
+  EXPECT_EQ(rec, "ok");
+  EXPECT_FALSE(r.ReadRecord(&rec));
+  EXPECT_TRUE(r.status().ok());
+}
+
+TEST(LogWriterTest, SplitsRecordAcrossBlocks) {
+  MemFileSystem fs;
+  std::unique_ptr<WritableFile> f;
+  ASSERT_TRUE(fs.NewWritableFile("wal.log", &f).ok());
+  LogWriter w(std::move(f));
+  ASSERT_TRUE(w.AddRecord(std::string(32762, 'a')).ok());
+  ASSERT_TRUE(w.Close().ok());
+
+  std::string bytes;
+  ASSERT_TRUE(ReadFileToString(&fs, "wal.log", &bytes).ok());
+  ASSERT_EQ(bytes.size(), kBlockSize + 8); // full block + (7 header + 1 byte)
+  EXPECT_EQ(static_cast<uint8_t>(bytes[6]), 2); // First
+  EXPECT_EQ(static_cast<uint8_t>(bytes[kBlockSize + 6]), 4);
 }
