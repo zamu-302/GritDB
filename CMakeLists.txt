@@ -14,6 +14,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_library(gritdb
 src/status.cc
 src/crc32c.cc
+src/memtable.cc
 src/filesystem.cc
 src/mem_filesystem.cc
 src/posix_filesystem.cc

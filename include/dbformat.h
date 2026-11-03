@@ -47,7 +47,7 @@ struct InternalKeyComparator {
     int r = user_a.compare(user_b);
 
     if (r != 0) {
-      return true;
+      return r < 0;
     }
     uint64_t tag_a = ExtractTag(a);
     uint64_t tag_b = ExtractTag(b);

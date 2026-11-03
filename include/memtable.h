@@ -7,6 +7,7 @@
 #include <string_view>
 namespace gritdb {
 enum class LookUpResult { Found, Deleted, NotFound };
+const size_t kEntryOverhead = 100;
 
 class MemTable {
 public:
