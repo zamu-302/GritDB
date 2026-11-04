@@ -15,6 +15,7 @@ add_library(gritdb
 src/status.cc
 src/crc32c.cc
 src/memtable.cc
+src/write_batch.cc
 src/filesystem.cc
 src/mem_filesystem.cc
 src/posix_filesystem.cc

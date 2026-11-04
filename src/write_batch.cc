@@ -8,6 +8,7 @@
 #include <cstring>
 #include <string_view>
 #include <vector>
+
 namespace {
 struct ParsedEntry {
   gritdb::ValueType type;
@@ -50,7 +51,7 @@ void WriteBatch::SetContents(std::string_view contents) {
 }
 void WriteBatch::SetCount(uint32_t count) {
   assert(rep_.size() >= kBatchHeaderSize);
-  EncodeFixed32(rep_.data(), count);
+  EncodeFixed32(rep_.data() + 8, count);
 }
 void WriteBatch::Put(std::string_view key, std::string_view value) {
   SetCount(Count() + 1);
