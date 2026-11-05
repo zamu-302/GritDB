@@ -1,0 +1,91 @@
+{
+  "context": {
+    "date": "2026-11-04T23:37:39+03:00",
+    "host_name": "sam-HP-Laptop-14s-dq2xxx",
+    "executable": "./build/release/bench/gritdb_bench",
+    "num_cpus": 8,
+    "mhz_per_cpu": 3700,
+    "cpu_scaling_enabled": true,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 49152,
+        "num_sharing": 2
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 1310720,
+        "num_sharing": 2
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 8388608,
+        "num_sharing": 8
+      }
+    ],
+    "load_avg": [0.618652,0.48584,0.645508],
+    "library_build_type": "release"
+  },
+  "benchmarks": [
+    {
+      "name": "BM_MemTableFillSeq/1000000",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "BM_MemTableFillSeq/1000000",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 1,
+      "real_time": 1.1043887590058148e+03,
+      "cpu_time": 1.1040392629999999e+03,
+      "time_unit": "ms",
+      "allocs/op": 3.0000000000000000e+00,
+      "estimate_B/entry": 2.2400000000000000e+02,
+      "items_per_second": 9.0576488854454807e+05,
+      "rss_B/entry": 2.7198668800000002e+02
+    },
+    {
+      "name": "BM_MemTableFillRandom/1000000",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "BM_MemTableFillRandom/1000000",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 1,
+      "real_time": 4.8688707419787534e+03,
+      "cpu_time": 4.8620813609999996e+03,
+      "time_unit": "ms",
+      "allocs/op": 3.0000000000000000e+00,
+      "estimate_B/entry": 2.2400000000000000e+02,
+      "items_per_second": 2.0567323451665294e+05,
+      "rss_B/entry": 8.0003072000000003e+01
+    },
+    {
+      "name": "BM_WalAppend",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "BM_WalAppend",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 9,
+      "real_time": 7.0967502109447707e+01,
+      "cpu_time": 7.0947050111111125e+01,
+      "time_unit": "ms",
+      "bytes_per_second": 1.7336873035223880e+08
+    }
+  ]
+}
