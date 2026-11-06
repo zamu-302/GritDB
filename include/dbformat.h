@@ -46,7 +46,7 @@ inline int CompareInternalKey(std::string_view a, std::string_view b) {
   auto tag_b = ExtractTag(b);
   auto res = key_a.compare(key_b);
   if (res) {
-    return res < 0;
+    return res;
   }
   if (tag_a > tag_b) {
     return -1;
@@ -59,16 +59,7 @@ inline int CompareByteWise(std::string_view a, std::string_view b) {
 
 struct InternalKeyComparator {
   inline bool operator()(const std::string &a, const std::string &b) const {
-    auto user_a = ExtractUserKey(a);
-    auto user_b = ExtractUserKey(b);
-    int r = user_a.compare(user_b);
-
-    if (r != 0) {
-      return r < 0;
-    }
-    uint64_t tag_a = ExtractTag(a);
-    uint64_t tag_b = ExtractTag(b);
-    return tag_a > tag_b;
+    return CompareInternalKey(a, b) < 0;
   }
 };
 } // namespace gritdb
