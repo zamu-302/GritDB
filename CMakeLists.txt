@@ -16,6 +16,9 @@ src/status.cc
 src/crc32c.cc
 src/memtable.cc
 src/write_batch.cc
+src/block_buider.cc
+src/block.cc
+src/block_iterator.cc
 src/filesystem.cc
 src/mem_filesystem.cc
 src/posix_filesystem.cc

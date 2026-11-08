@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+using Compartor = int (*)(std::string_view, std::string_view);
 namespace gritdb {
 
 class [[nodiscard]] Status {
