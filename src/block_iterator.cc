@@ -43,6 +43,12 @@ void BlockIterator::Seek(std::string_view target) {
       right = mid - 1;
     }
   }
+  SeekToRestart(left);
+  while (ParseNextKey()) {
+    if (cmp(key, target) >= 0) {
+      return;
+    }
+  }
 }
 std::string_view BlockIterator::get_key() const {
   assert(Valid());
@@ -105,7 +111,8 @@ bool BlockIterator::DecodeRestartKey(uint32_t index, std::string_view *key) {
   std::string_view input = data.substr(offset, block->entries_end() - offset);
 
   uint64_t shared, non_shared, value_len;
-  if (!DecodeEntryHeader(&input, &shared, &non_shared, &value_len)) {
+  if (!DecodeEntryHeader(&input, &shared, &non_shared, &value_len) ||
+      shared != 0) {
     MarkCorrupt("bad entry header");
     return false;
   }
