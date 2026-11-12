@@ -6,43 +6,30 @@
 #include <string>
 #include <string_view>
 namespace gritdb {
-namespace {} // namespace
 
-class BlockHandle {
-public:
-  BlockHandle() : offset{0}, size{0} {}
-  void EncodeTo(std::string *dst);
+inline constexpr size_t handle_size = 16;
+inline constexpr size_t trailer_size = 5;
+inline constexpr size_t footer_size = 40;
+inline constexpr uint64_t magic_number = 8881518461642107531ULL;
+
+enum class BlockType : uint8_t { Uncompressed = 0, Compressed = 1 };
+
+struct BlockHandle {
+  void EncodeTo(std::string *dst) const;
   Status DecodeFrom(std::string_view *input);
-
-private:
-  std::uint64_t offset;
-  std::uint64_t size;
+  std::uint64_t offset = 0;
+  std::uint64_t size = 0;
 };
 
-class Footer {
-public:
-  void EncodeTo(std::string *dst);
+struct Footer {
+  void EncodeTo(std::string *dst) const;
   Status DecodeFrom(std::string_view *input);
-
-private:
   BlockHandle index_handle;
   BlockHandle filter_handle;
-  uint64_t magic_number;
 };
-class TableBuilder {
-public:
-  TableBuilder();
-  Status Add(std::string *key, std::string *value);
-  Status Finish();
+void MakeTrailer(BlockType type, std::string_view contents, std::string *dst);
+Status CheckTrailer(std::string_view block_with_trailer,
+                    std::string_view *contents);
+Status CheckHandleRange(const BlockHandle &h, uint64_t file_size);
 
-private:
-  WritableFile *file;
-  BlockBuilder data_block;
-  BlockBuilder index_block;
-  uint64_t offset;
-  std::string key;
-  uint64_t count;
-  Status s;
-  bool finised;
-};
 } // namespace gritdb
