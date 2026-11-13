@@ -29,6 +29,9 @@ class TableBuilder {
   uint64_t FileSize() const;
 
 private:
+  void Flush();
+  void WriteBlock(std::string_view contetns, BlockHandle *handle);
+
   TableFormat options;
   WritableFile *file;
   uint64_t offset = 0;
