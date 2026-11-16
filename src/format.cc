@@ -22,7 +22,7 @@ Status BlockHandle::DecodeFrom(std::string_view *input) {
     return Status::Corruption("truncated block handle.");
   }
 
-  offset = DecodeFixed32(input->data());
+  offset = DecodeFixed64(input->data());
   size = DecodeFixed64(input->data() + 8);
   input->remove_prefix(handle_size);
   return Status::OK();

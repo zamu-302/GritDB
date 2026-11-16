@@ -23,7 +23,9 @@ public:
 
 private:
   Table(const TableFormat &options, std::unique_ptr<RandomAccessFile> file,
-        uint64_t file_size, std::unique_ptr<Block> index_block);
+        uint64_t file_size, std::unique_ptr<Block> index_block)
+      : options_{options}, file_{std::move(file)}, file_size_{file_size},
+        index_block_{std::move(index_block)} {};
 
   TableFormat options_;
   std::unique_ptr<RandomAccessFile> file_;

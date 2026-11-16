@@ -20,6 +20,9 @@ src/block_buider.cc
 src/block.cc
 src/block_iterator.cc
 src/filesystem.cc
+src/table.cc
+src/format.cc
+src/table_builder.cc
 src/mem_filesystem.cc
 src/posix_filesystem.cc
 src/wal.cc)

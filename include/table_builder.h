@@ -18,7 +18,11 @@ struct TableFormat {
   bool verify_checksums = true;
 };
 class TableBuilder {
-  TableBuilder(const TableFormat &options, WritableFile *file);
+public:
+  TableBuilder(const TableFormat &options, WritableFile *file)
+      : options{options}, file{file},
+        data_block{options.block_restart_interval, options.comp},
+        index_block{1, options.comp} {};
   TableBuilder(const TableBuilder &) = delete;
   TableBuilder &operator=(const TableBuilder &) = delete;
 

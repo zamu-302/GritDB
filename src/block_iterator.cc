@@ -16,7 +16,6 @@ bool DecodeEntryHeader(std::string_view *input, uint64_t *shared,
       !GetVarint64(input, value_len)) {
     return false;
   }
-  // Subtraction form, so hostile lengths cannot overflow an addition.
   if (*non_shared > input->size())
     return false;
   if (*value_len > input->size() - *non_shared)

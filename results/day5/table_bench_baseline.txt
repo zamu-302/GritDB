@@ -1,0 +1,119 @@
+-------------------------------------------------------------------------------------------------
+Benchmark                                       Time             CPU   Iterations UserCounters...
+-------------------------------------------------------------------------------------------------
+BM_TableBuild/512_mean                    6598891 ns      6568699 ns            5 bytes_per_second=360.136Mi/s file_bytes=2.54005M items_per_second=3.0454M/s
+BM_TableBuild/512_median                  6649305 ns      6619678 ns            5 bytes_per_second=357.285Mi/s file_bytes=2.54005M items_per_second=3.0213M/s
+BM_TableBuild/512_stddev                   109917 ns       107473 ns            5 bytes_per_second=5.92881Mi/s file_bytes=0 items_per_second=50.1355k/s
+BM_TableBuild/512_cv                         1.67 %          1.64 %             5 bytes_per_second=1.65% file_bytes=0.00% items_per_second=1.65%
+BM_TableBuild/1024_mean                   6260657 ns      6233307 ns            5 bytes_per_second=379.435Mi/s file_bytes=2.40875M items_per_second=3.2086M/s
+BM_TableBuild/1024_median                 6268169 ns      6241832 ns            5 bytes_per_second=378.913Mi/s file_bytes=2.40875M items_per_second=3.20419M/s
+BM_TableBuild/1024_stddev                   20673 ns        20250 ns            5 bytes_per_second=1.23378Mi/s file_bytes=0 items_per_second=10.4332k/s
+BM_TableBuild/1024_cv                        0.33 %          0.32 %             5 bytes_per_second=0.33% file_bytes=0.00% items_per_second=0.33%
+BM_TableBuild/4096_mean                   5982941 ns      5957974 ns            5 bytes_per_second=396.973Mi/s file_bytes=2.30507M items_per_second=3.35691M/s
+BM_TableBuild/4096_median                 5974077 ns      5948774 ns            5 bytes_per_second=397.58Mi/s file_bytes=2.30507M items_per_second=3.36204M/s
+BM_TableBuild/4096_stddev                   29645 ns        28950 ns            5 bytes_per_second=1.9217Mi/s file_bytes=0 items_per_second=16.2503k/s
+BM_TableBuild/4096_cv                        0.50 %          0.49 %             5 bytes_per_second=0.48% file_bytes=0.00% items_per_second=0.48%
+BM_TableBuild/16384_mean                  5812172 ns      5787231 ns            5 bytes_per_second=408.683Mi/s file_bytes=2.27604M items_per_second=3.45593M/s
+BM_TableBuild/16384_median                5818676 ns      5793936 ns            5 bytes_per_second=408.205Mi/s file_bytes=2.27604M items_per_second=3.45188M/s
+BM_TableBuild/16384_stddev                  23924 ns        23568 ns            5 bytes_per_second=1.66493Mi/s file_bytes=0 items_per_second=14.0791k/s
+BM_TableBuild/16384_cv                       0.41 %          0.41 %             5 bytes_per_second=0.41% file_bytes=0.00% items_per_second=0.41%
+BM_TableBuild/65536_mean                  5749820 ns      5737448 ns            5 bytes_per_second=412.235Mi/s file_bytes=2.26837M items_per_second=3.48597M/s
+BM_TableBuild/65536_median                5764723 ns      5741175 ns            5 bytes_per_second=411.956Mi/s file_bytes=2.26837M items_per_second=3.48361M/s
+BM_TableBuild/65536_stddev                  43997 ns        33850 ns            5 bytes_per_second=2.4353Mi/s file_bytes=0 items_per_second=20.5935k/s
+BM_TableBuild/65536_cv                       0.77 %          0.59 %             5 bytes_per_second=0.59% file_bytes=0.00% items_per_second=0.59%
+BM_TableSize/512/iterations:1_mean           2330 ns          933 ns            5 bytes_per_entry=127.002 data_blocks=4k file_bytes=2.54005M footer_bytes=40 index_bytes=188.009k overhead_pct=2.42133 raw_bytes=2.48M trailer_bytes=20.005k
+BM_TableSize/512/iterations:1_median         2334 ns          890 ns            5 bytes_per_entry=127.002 data_blocks=4k file_bytes=2.54005M footer_bytes=40 index_bytes=188.009k overhead_pct=2.42133 raw_bytes=2.48M trailer_bytes=20.005k
+BM_TableSize/512/iterations:1_stddev          407 ns          203 ns            5 bytes_per_entry=0 data_blocks=0 file_bytes=0 footer_bytes=0 index_bytes=0 overhead_pct=0 raw_bytes=0 trailer_bytes=0
+BM_TableSize/512/iterations:1_cv            17.47 %         21.72 %             5 bytes_per_entry=0.00% data_blocks=0.00% file_bytes=0.00% footer_bytes=0.00% index_bytes=0.00% overhead_pct=0.00% raw_bytes=0.00% trailer_bytes=0.00%
+BM_TableSize/1024/iterations:1_mean          2358 ns          840 ns            5 bytes_per_entry=120.437 data_blocks=2.223k file_bytes=2.40875M footer_bytes=40 index_bytes=104.49k overhead_pct=-2.87315 raw_bytes=2.48M trailer_bytes=11.12k
+BM_TableSize/1024/iterations:1_median        2391 ns          786 ns            5 bytes_per_entry=120.437 data_blocks=2.223k file_bytes=2.40875M footer_bytes=40 index_bytes=104.49k overhead_pct=-2.87315 raw_bytes=2.48M trailer_bytes=11.12k
+BM_TableSize/1024/iterations:1_stddev         341 ns          262 ns            5 bytes_per_entry=0 data_blocks=0 file_bytes=0 footer_bytes=0 index_bytes=0 overhead_pct=0 raw_bytes=0 trailer_bytes=0
+BM_TableSize/1024/iterations:1_cv           14.45 %         31.20 %             5 bytes_per_entry=0.00% data_blocks=0.00% file_bytes=0.00% footer_bytes=0.00% index_bytes=0.00% overhead_pct=-0.00% raw_bytes=0.00% trailer_bytes=0.00%
+BM_TableSize/4096/iterations:1_mean          2421 ns          909 ns            5 bytes_per_entry=115.254 data_blocks=556 file_bytes=2.30507M footer_bytes=40 index_bytes=26.141k overhead_pct=-7.05347 raw_bytes=2.48M trailer_bytes=2.785k
+BM_TableSize/4096/iterations:1_median        2562 ns          932 ns            5 bytes_per_entry=115.254 data_blocks=556 file_bytes=2.30507M footer_bytes=40 index_bytes=26.141k overhead_pct=-7.05347 raw_bytes=2.48M trailer_bytes=2.785k
+BM_TableSize/4096/iterations:1_stddev         230 ns          129 ns            5 bytes_per_entry=0 data_blocks=0 file_bytes=0 footer_bytes=0 index_bytes=0 overhead_pct=0 raw_bytes=0 trailer_bytes=0
+BM_TableSize/4096/iterations:1_cv            9.52 %         14.21 %             5 bytes_per_entry=0.00% data_blocks=0.00% file_bytes=0.00% footer_bytes=0.00% index_bytes=0.00% overhead_pct=-0.00% raw_bytes=0.00% trailer_bytes=0.00%
+BM_TableSize/16384/iterations:1_mean         2546 ns         1050 ns            5 bytes_per_entry=113.802 data_blocks=138 file_bytes=2.27604M footer_bytes=40 index_bytes=6.495k overhead_pct=-8.22399 raw_bytes=2.48M trailer_bytes=695
+BM_TableSize/16384/iterations:1_median       2679 ns          966 ns            5 bytes_per_entry=113.802 data_blocks=138 file_bytes=2.27604M footer_bytes=40 index_bytes=6.495k overhead_pct=-8.22399 raw_bytes=2.48M trailer_bytes=695
+BM_TableSize/16384/iterations:1_stddev        377 ns          175 ns            5 bytes_per_entry=0 data_blocks=0 file_bytes=0 footer_bytes=0 index_bytes=0 overhead_pct=0 raw_bytes=0 trailer_bytes=0
+BM_TableSize/16384/iterations:1_cv          14.82 %         16.71 %             5 bytes_per_entry=0.00% data_blocks=0.00% file_bytes=0.00% footer_bytes=0.00% index_bytes=0.00% overhead_pct=-0.00% raw_bytes=0.00% trailer_bytes=0.00%
+BM_TableSize/65536/iterations:1_mean         2574 ns          922 ns            5 bytes_per_entry=113.418 data_blocks=35 file_bytes=2.26837M footer_bytes=40 index_bytes=1.654k overhead_pct=-8.53347 raw_bytes=2.48M trailer_bytes=180
+BM_TableSize/65536/iterations:1_median       2612 ns          973 ns            5 bytes_per_entry=113.418 data_blocks=35 file_bytes=2.26837M footer_bytes=40 index_bytes=1.654k overhead_pct=-8.53347 raw_bytes=2.48M trailer_bytes=180
+BM_TableSize/65536/iterations:1_stddev        245 ns          184 ns            5 bytes_per_entry=1.50789u data_blocks=0 file_bytes=0 footer_bytes=0 index_bytes=0 overhead_pct=0 raw_bytes=0 trailer_bytes=0
+BM_TableSize/65536/iterations:1_cv           9.52 %         19.94 %             5 bytes_per_entry=0.00% data_blocks=0.00% file_bytes=0.00% footer_bytes=0.00% index_bytes=0.00% overhead_pct=-0.00% raw_bytes=0.00% trailer_bytes=0.00%
+BM_TableGet/512/0_mean                        544 ns          544 ns            5 allocs/op=5 bytes_read/op=588 file_bytes=2.54005M read_amp=4.74194 reads/op=1
+BM_TableGet/512/0_median                      545 ns          545 ns            5 allocs/op=5 bytes_read/op=588 file_bytes=2.54005M read_amp=4.74194 reads/op=1
+BM_TableGet/512/0_stddev                     3.38 ns         3.38 ns            5 allocs/op=66.64n bytes_read/op=0 file_bytes=0 read_amp=0 reads/op=0
+BM_TableGet/512/0_cv                         0.62 %          0.62 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGet/1024/0_mean                       668 ns          668 ns            5 allocs/op=5 bytes_read/op=1.03681k file_bytes=2.40875M read_amp=8.36136 reads/op=1
+BM_TableGet/1024/0_median                     664 ns          664 ns            5 allocs/op=5 bytes_read/op=1.03681k file_bytes=2.40875M read_amp=8.36136 reads/op=1
+BM_TableGet/1024/0_stddev                    12.7 ns         12.7 ns            5 allocs/op=0 bytes_read/op=0 file_bytes=0 read_amp=0 reads/op=0
+BM_TableGet/1024/0_cv                        1.90 %          1.90 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGet/4096/0_mean                       833 ns          833 ns            5 allocs/op=5.00001 bytes_read/op=4.10037k file_bytes=2.30507M read_amp=33.0675 reads/op=1
+BM_TableGet/4096/0_median                     832 ns          832 ns            5 allocs/op=5.00001 bytes_read/op=4.10037k file_bytes=2.30507M read_amp=33.0675 reads/op=1
+BM_TableGet/4096/0_stddev                    5.08 ns         5.07 ns            5 allocs/op=0 bytes_read/op=0 file_bytes=0 read_amp=0 reads/op=0
+BM_TableGet/4096/0_cv                        0.61 %          0.61 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGet/16384/0_mean                     1333 ns         1333 ns            5 allocs/op=5.00001 bytes_read/op=16.4463k file_bytes=2.27604M read_amp=132.632 reads/op=1
+BM_TableGet/16384/0_median                   1331 ns         1331 ns            5 allocs/op=5.00001 bytes_read/op=16.4463k file_bytes=2.27604M read_amp=132.632 reads/op=1
+BM_TableGet/16384/0_stddev                   9.82 ns         9.79 ns            5 allocs/op=0 bytes_read/op=0 file_bytes=0 read_amp=2.13248u reads/op=0
+BM_TableGet/16384/0_cv                       0.74 %          0.73 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGet/65536/0_mean                     4902 ns         4901 ns            5 allocs/op=5.00003 bytes_read/op=65.1504k file_bytes=2.26837M read_amp=525.407 reads/op=1
+BM_TableGet/65536/0_median                   4901 ns         4901 ns            5 allocs/op=5.00003 bytes_read/op=65.1504k file_bytes=2.26837M read_amp=525.407 reads/op=1
+BM_TableGet/65536/0_stddev                   17.5 ns         17.5 ns            5 allocs/op=0 bytes_read/op=0 file_bytes=0 read_amp=0 reads/op=0
+BM_TableGet/65536/0_cv                       0.36 %          0.36 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGet/512/1_mean                       1917 ns         1917 ns            5 allocs/op=5.00001 bytes_read/op=588 file_bytes=2.54005M read_amp=4.74194 reads/op=1
+BM_TableGet/512/1_median                     1913 ns         1913 ns            5 allocs/op=5.00001 bytes_read/op=588 file_bytes=2.54005M read_amp=4.74194 reads/op=1
+BM_TableGet/512/1_stddev                     11.4 ns         11.4 ns            5 allocs/op=66.64n bytes_read/op=0 file_bytes=0 read_amp=0 reads/op=0
+BM_TableGet/512/1_cv                         0.59 %          0.60 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGet/1024/1_mean                      3096 ns         3096 ns            5 allocs/op=5.00002 bytes_read/op=1.03681k file_bytes=2.40875M read_amp=8.36135 reads/op=1
+BM_TableGet/1024/1_median                    3104 ns         3104 ns            5 allocs/op=5.00002 bytes_read/op=1.03681k file_bytes=2.40875M read_amp=8.36135 reads/op=1
+BM_TableGet/1024/1_stddev                    18.0 ns         18.1 ns            5 allocs/op=0 bytes_read/op=0 file_bytes=0 read_amp=0 reads/op=0
+BM_TableGet/1024/1_cv                        0.58 %          0.58 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGet/4096/1_mean                     10426 ns        10425 ns            5 allocs/op=5.00006 bytes_read/op=4.10034k file_bytes=2.30507M read_amp=33.0673 reads/op=1
+BM_TableGet/4096/1_median                   10394 ns        10393 ns            5 allocs/op=5.00006 bytes_read/op=4.10034k file_bytes=2.30507M read_amp=33.0673 reads/op=1
+BM_TableGet/4096/1_stddev                    98.3 ns         98.2 ns            5 allocs/op=0 bytes_read/op=0 file_bytes=0 read_amp=0 reads/op=0
+BM_TableGet/4096/1_cv                        0.94 %          0.94 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGet/16384/1_mean                    39104 ns        39101 ns            5 allocs/op=5.00022 bytes_read/op=16.4463k file_bytes=2.27604M read_amp=132.631 reads/op=1
+BM_TableGet/16384/1_median                  39066 ns        39063 ns            5 allocs/op=5.00022 bytes_read/op=16.4463k file_bytes=2.27604M read_amp=132.631 reads/op=1
+BM_TableGet/16384/1_stddev                    206 ns          206 ns            5 allocs/op=66.64n bytes_read/op=0 file_bytes=0 read_amp=0 reads/op=0
+BM_TableGet/16384/1_cv                       0.53 %          0.53 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGet/65536/1_mean                   153319 ns       153307 ns            5 allocs/op=5.0009 bytes_read/op=65.2014k file_bytes=2.26837M read_amp=525.818 reads/op=1
+BM_TableGet/65536/1_median                 153129 ns       153123 ns            5 allocs/op=5.0009 bytes_read/op=65.2014k file_bytes=2.26837M read_amp=525.818 reads/op=1
+BM_TableGet/65536/1_stddev                    579 ns          580 ns            5 allocs/op=0 bytes_read/op=772.04u file_bytes=0 read_amp=0 reads/op=0
+BM_TableGet/65536/1_cv                       0.38 %          0.38 %             5 allocs/op=0.00% bytes_read/op=0.00% file_bytes=0.00% read_amp=0.00% reads/op=0.00%
+BM_TableGetGap/1024_mean                     3074 ns         3069 ns            5 reads/op=0.999951
+BM_TableGetGap/1024_median                   3077 ns         3073 ns            5 reads/op=0.999951
+BM_TableGetGap/1024_stddev                   20.1 ns         19.8 ns            5 reads/op=0
+BM_TableGetGap/1024_cv                       0.65 %          0.65 %             5 reads/op=0.00%
+BM_TableGetGap/4096_mean                    10362 ns        10361 ns            5 reads/op=0.999952
+BM_TableGetGap/4096_median                  10372 ns        10372 ns            5 reads/op=0.999952
+BM_TableGetGap/4096_stddev                   47.9 ns         48.0 ns            5 reads/op=0
+BM_TableGetGap/4096_cv                       0.46 %          0.46 %             5 reads/op=0.00%
+BM_TableGetGap/65536_mean                  153807 ns       153379 ns            5 reads/op=1
+BM_TableGetGap/65536_median                153970 ns       153529 ns            5 reads/op=1
+BM_TableGetGap/65536_stddev                   776 ns          605 ns            5 reads/op=0
+BM_TableGetGap/65536_cv                      0.50 %          0.39 %             5 reads/op=0.00%
+BM_TableGetPastEnd_mean                       166 ns          165 ns            5 reads/op=0
+BM_TableGetPastEnd_median                     166 ns          166 ns            5 reads/op=0
+BM_TableGetPastEnd_stddev                    2.39 ns         2.35 ns            5 reads/op=0
+BM_TableGetPastEnd_cv                        1.44 %          1.42 %             5 reads/op=-nan%
+BM_Crc/4096_mean                             9329 ns         9306 ns            5 bytes_per_second=419.763Mi/s
+BM_Crc/4096_median                           9328 ns         9304 ns            5 bytes_per_second=419.864Mi/s
+BM_Crc/4096_stddev                           44.1 ns         42.0 ns            5 bytes_per_second=1.88917Mi/s
+BM_Crc/4096_cv                               0.47 %          0.45 %             5 bytes_per_second=0.45%
+BM_Crc/65536_mean                          149038 ns       148668 ns            5 bytes_per_second=420.402Mi/s
+BM_Crc/65536_median                        149159 ns       148760 ns            5 bytes_per_second=420.14Mi/s
+BM_Crc/65536_stddev                           327 ns          322 ns            5 bytes_per_second=931.983Ki/s
+BM_Crc/65536_cv                              0.22 %          0.22 %             5 bytes_per_second=0.22%
+BM_TableOpen/1024_mean                     246219 ns       245541 ns            5
+BM_TableOpen/1024_median                   246295 ns       245622 ns            5
+BM_TableOpen/1024_stddev                      691 ns          698 ns            5
+BM_TableOpen/1024_cv                         0.28 %          0.28 %             5
+BM_TableOpen/4096_mean                      61211 ns        61051 ns            5
+BM_TableOpen/4096_median                    61164 ns        61015 ns            5
+BM_TableOpen/4096_stddev                      306 ns          302 ns            5
+BM_TableOpen/4096_cv                         0.50 %          0.49 %             5
+BM_TableOpen/65536_mean                      4269 ns         4258 ns            5
+BM_TableOpen/65536_median                    4263 ns         4253 ns            5
+BM_TableOpen/65536_stddev                    12.7 ns         12.4 ns            5
+BM_TableOpen/65536_cv                        0.30 %          0.29 %             5

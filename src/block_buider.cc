@@ -10,7 +10,7 @@
 namespace gritdb {
 void BlockBuilder::Add(std::string_view key, std::string_view value) {
   assert(!finisied);
-  assert(buffer.empty() || std::string_view(last_key) < key);
+  assert(buffer.empty() || cmp(last_key, key) < 0);
   assert(buffer.size() < std::numeric_limits<uint32_t>::max());
 
   size_t shared = 0;

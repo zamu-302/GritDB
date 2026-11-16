@@ -1,5 +1,4 @@
 #include "table_builder.h"
-#include "dbformat.h"
 #include <cassert>
 #include <string_view>
 

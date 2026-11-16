@@ -1,4 +1,6 @@
 #pragma once
+#include "dbformat.h"
+#include "status.h"
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -8,8 +10,10 @@
 namespace gritdb {
 class BlockBuilder {
 public:
-  explicit BlockBuilder(size_t restart_interval)
-      : restart_interval{restart_interval}, counter{0}, restart_offset{0} {
+  explicit BlockBuilder(size_t restart_interval,
+                        Compartor cmp = CompareByteWise)
+      : restart_interval{restart_interval}, counter{0}, restart_offset{0},
+        cmp{cmp} {
     assert(restart_interval >= 1);
   }
 
@@ -23,6 +27,7 @@ public:
 private:
   size_t restart_interval;
   size_t counter;
+  Compartor cmp;
   std::vector<uint32_t> restart_offset;
   std::string buffer;
   std::string last_key;
